@@ -85,7 +85,7 @@
                 timeId = setInterval(function () {
                     $("span").eq(parseInt(Math.random() * names.length)).css("backgroundColor", "red").siblings()
                         .css("backgroundColor", "pink");
-                }, 150)
+                }, 50)
             });
             $("#end").on('click', function () {
                 clearInterval(timeId);
