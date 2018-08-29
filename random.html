@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        #spans {
+            width: 80%;
+            height: 600px;
+            margin: 30px auto;
+        }
+
+        span {
+            float: left;
+            width: 60px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            margin: 10px;
+            background-color: pink;
+        }
+    </style>
+    <script src="http://oss.sheetjs.com/js-xlsx/xlsx.full.min.js"></script>
+</head>
+
+<body>
+<input type="file" onchange="importf(this)"/>
+<div id="demo"></div>
+<br>
+<input type="button" name="" value="开始点名" id="start">
+<input type="button" name="" value="停止点名" id="end">
+<div id="spans"></div>
+<script src="http://libs.baidu.com/jquery/1.11.3/jquery.min.js"></script>
+<!-- <script src="readExcel.js"></script> -->
+<script>
+    /*
+    FileReader共有4种读取方法：
+    1.readAsArrayBuffer(file)：将文件读取为ArrayBuffer。
+    2.readAsBinaryString(file)：将文件读取为二进制字符串
+    3.readAsDataURL(file)：将文件读取为Data URL
+    4.readAsText(file, [encoding])：将文件读取为文本，encoding缺省值为'UTF-8'
+    */
+    var wb;//读取完成的数据
+    var rABS = false; //是否将文件读取为二进制字符串
+    var names = [];
+
+    function importf(obj) {//导入
+        if (!obj.files) {
+            return;
+        }
+        var f = obj.files[0];
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            var data = e.target.result;
+            if (rABS) {
+                wb = XLSX.read(btoa(fixdata(data)), {//手动转化
+                    type: 'base64'
+                });
+            } else {
+                wb = XLSX.read(data, {
+                    type: 'binary'
+                });
+            }
+            //wb.SheetNames[0]是获取Sheets中第一个Sheet的名字
+            //wb.Sheets[Sheet名]获取第一个Sheet的数据
+            //var nameString = JSON.stringify(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]));
+            var Obj = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+            for (var i = 0; i < Obj.length; i++) {
+                for (var key in Obj[i]) {
+                    if (key == "姓名") {
+                        //console.log(Obj[i][key]);
+                        names.push(Obj[i][key]);
+                    }
+                }
+            }
+            //创建姓名
+            $(function () {
+                for (var i = 0; i < names.length; i++) {
+                    $("<span>" + names[i] + "</span>").appendTo("#spans");
+                }
+            });
+            var timeId;
+            $("#start").on('click', function () {
+                timeId = setInterval(function () {
+                    $("span").eq(parseInt(Math.random() * names.length)).css("backgroundColor", "red").siblings()
+                        .css("backgroundColor", "pink");
+                }, 150)
+            });
+            $("#end").on('click', function () {
+                clearInterval(timeId);
+            });
+        };
+        if (rABS) {
+            reader.readAsArrayBuffer(f);
+        } else {
+            reader.readAsBinaryString(f);
+        }
+    }
+
+    function fixdata(data) { //文件流转BinaryString
+        var o = "",
+            l = 0,
+            w = 10240;
+        for (; l < data.byteLength / w; ++l) o += String.fromCharCode.apply(null, new Uint8Array(data.slice(l * w, l * w + w)));
+        o += String.fromCharCode.apply(null, new Uint8Array(data.slice(l * w)));
+        return o;
+    }
+
+    //动态设置名字样式
+
+
+    console.log("执行了");
+</script>
+</html>
